@@ -59,7 +59,7 @@
             <h2>Diagrama Entidad-Relación (DER)</h2>
             <div class="content-box">
                 <p><strong>Estructura relacional de la base de datos:</strong></p>
-                <p>
+                <p class="der-link-container">
                     <a href="https://drive.google.com/file/d/1QW7S9AAr6deHPi1hOnXw78cGmtCY4j1-/view?usp=sharing" target="_blank" class="der-link">
                         📊 Ver diagrama completo en Draw.io
                     </a>
@@ -71,48 +71,41 @@
 └─────────────────────────────────────────────────────────────┘
 
 AUDITOR
-├── id_auditor (PK) ──────────┐
-├── nombre_auditor            │
-├── apellido_auditor          │
-└── contacto_auditor          │
-                              │
-                         ┌────┴────────────────────┐
-                         │                         │
-                    VISITA (1:N)            (opcional uso)
-                    ├── id_visita (PK)      │
-                    ├── id_auditor (FK) ────┘
-                    ├── idPunto_venta (FK)
-                    ├── fecha_visita
-                    ├── hs_inicio_visita
-                    ├── hs_fin_visita
-                    ├── cant_servicios
-                    └── estado_visita
-                         │
-                         └─────────────────────┐
-                                              │
-                         RELEVAMIENTO (1:N)   │
-                         ├── id_relevamiento   │
-                         ├── id_cliente (FK)   │
-                         ├── id_visita (FK) ───┘
-                         └── descripcion_relevamiento
+├── id_auditor (PK)
+├── nombre_auditor
+├── apellido_auditor
+└── contacto_auditor
+         │
+         └─→ VISITA (1:N)
+             ├── id_visita (PK)
+             ├── id_auditor (FK)
+             ├── idPunto_venta (FK)
+             ├── fecha_visita
+             ├── hs_inicio_visita
+             ├── hs_fin_visita
+             ├── cant_servicios
+             └── estado_visita
+                  │
+                  └─→ RELEVAMIENTO (1:N)
+                      ├── id_relevamiento (PK)
+                      ├── id_cliente (FK)
+                      ├── id_visita (FK)
+                      └── descripcion_relevamiento
 
+EMPRESA (1:N) → PUNTO_DE_VENTA
+├── idEmpresa (PK)
+├── nombre_empresa
+    └─→ idPunto_venta (PK)
+        ├── nombre_punto_venta
+        ├── direccion_punto_venta
+        └── idEmpresa (FK)
+             │
+             └─→ VISITA (1:N)
 
-EMPRESA
-├── idEmpresa (PK) ──────────────┐
-└── nombre_empresa              │
-                                │
-                          PUNTO_DE_VENTA (1:N)
-                          ├── idPunto_venta (PK)
-                          ├── idEmpresa (FK) ──┘
-                          ├── nombre_punto_venta
-                          └── direccion_punto_venta
-
-
-CLIENTES
-├── id_cliente (PK) ──────┐
-├── nombre_cliente        │
-└── contacto_cliente      │
-                     (referencia en RELEVAMIENTO)
+CLIENTES (1:N) → RELEVAMIENTO
+├── id_cliente (PK)
+├── nombre_cliente
+└── contacto_cliente
                     </pre>
                 </div>
             </div>
@@ -427,7 +420,7 @@ ORDER BY total_relevamientos DESC;</pre>
                 <div class="kpi-grid">
                     <div class="kpi-card">
                         <h3>Total de Auditores Activos</h3>
-                        <pre class="sql-code">SELECT COUNT(id_auditor) AS total
+                        <pre class="sql-code">SELECT COUNT(*) AS total
 FROM auditor;</pre>
                         <p class="kpi-desc">Cantidad de auditores en el sistema</p>
                         <p class="kpi-value">6 auditores</p>
