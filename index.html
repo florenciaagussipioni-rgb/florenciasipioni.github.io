@@ -66,46 +66,6 @@
                 </p>
                 <div class="der-container">
                     <pre class="code-block">
-┌─────────────────────────────────────────────────────────────┐
-│                      ESTRUCTURA DE BBDD                      │
-└─────────────────────────────────────────────────────────────┘
-
-AUDITOR
-├── id_auditor (PK)
-├── nombre_auditor
-├── apellido_auditor
-└── contacto_auditor
-         │
-         └─→ VISITA (1:N)
-             ├── id_visita (PK)
-             ├── id_auditor (FK)
-             ├── idPunto_venta (FK)
-             ├── fecha_visita
-             ├── hs_inicio_visita
-             ├── hs_fin_visita
-             ├── cant_servicios
-             └── estado_visita
-                  │
-                  └─→ RELEVAMIENTO (1:N)
-                      ├── id_relevamiento (PK)
-                      ├── id_cliente (FK)
-                      ├── id_visita (FK)
-                      └── descripcion_relevamiento
-
-EMPRESA (1:N) → PUNTO_DE_VENTA
-├── idEmpresa (PK)
-├── nombre_empresa
-    └─→ idPunto_venta (PK)
-        ├── nombre_punto_venta
-        ├── direccion_punto_venta
-        └── idEmpresa (FK)
-             │
-             └─→ VISITA (1:N)
-
-CLIENTES (1:N) → RELEVAMIENTO
-├── id_cliente (PK)
-├── nombre_cliente
-└── contacto_cliente
                     </pre>
                 </div>
             </div>
