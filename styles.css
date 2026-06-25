@@ -142,7 +142,7 @@ body {
 
 .screenshot-list,
 .conclusions-list,
-.recommendations-list,
+.team-list,
 .tech-list {
     list-style-position: inside;
     margin: 20px 0;
@@ -151,14 +151,34 @@ body {
 
 .screenshot-list li,
 .conclusions-list li,
-.recommendations-list li,
+.team-list li,
 .tech-list li {
     margin-bottom: 12px;
     line-height: 1.6;
 }
 
-.recommendations-list li:before {
-    content: "";
+/* Link DER */
+.der-link-container {
+    text-align: center;
+    margin: 20px 0 30px 0;
+}
+
+.der-link {
+    display: inline-block;
+    background-color: #00bcd4;
+    color: white;
+    padding: 12px 30px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 188, 212, 0.3);
+}
+
+.der-link:hover {
+    background-color: #0097a7;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0, 188, 212, 0.5);
 }
 
 /* DER Container */
