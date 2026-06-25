@@ -59,6 +59,11 @@
             <h2>Diagrama Entidad-Relación (DER)</h2>
             <div class="content-box">
                 <p><strong>Estructura relacional de la base de datos:</strong></p>
+                <p>
+                    <a href="https://drive.google.com/file/d/1QW7S9AAr6deHPi1hOnXw78cGmtCY4j1-/view?usp=sharing" target="_blank" class="der-link">
+                        📊 Ver diagrama completo en Draw.io
+                    </a>
+                </p>
                 <div class="der-container">
                     <pre class="code-block">
 ┌─────────────────────────────────────────────────────────────┐
@@ -325,73 +330,25 @@ CLIENTES
             <div class="content-box">
                 
                 <div class="query-item">
-                    <h3>1. Auditorías por auditor con cantidad de visitas</h3>
+                    <h3>1. Listar todos los auditores</h3>
                     <pre class="sql-code">SELECT 
-    a.id_auditor,
-    CONCAT(a.nombre_auditor, ' ', a.apellido_auditor) AS nombre_completo,
-    a.contacto_auditor,
-    COUNT(v.id_visita) AS total_visitas,
-    SUM(v.cant_servicios) AS total_servicios
-FROM auditor a
-LEFT JOIN visita v ON a.id_auditor = v.id_auditor
-GROUP BY a.id_auditor, a.nombre_auditor, a.apellido_auditor, a.contacto_auditor
-ORDER BY total_visitas DESC;</pre>
+    id_auditor,
+    nombre_auditor,
+    apellido_auditor,
+    contacto_auditor
+FROM auditor
+ORDER BY apellido_auditor;</pre>
                 </div>
 
                 <div class="query-item">
-                    <h3>2. Visitas completadas por punto de venta</h3>
-                    <pre class="sql-code">SELECT 
-    pv.idPunto_venta,
-    pv.nombre_punto_venta,
-    e.nombre_empresa,
-    COUNT(v.id_visita) AS visitas_completadas,
-    SUM(CASE WHEN v.estado_visita = 'Finalizado' THEN 1 ELSE 0 END) AS finalizadas
-FROM punto_de_venta pv
-JOIN empresa e ON pv.idEmpresa = e.idEmpresa
-LEFT JOIN visita v ON pv.idPunto_venta = v.idPunto_venta
-GROUP BY pv.idPunto_venta, pv.nombre_punto_venta, e.nombre_empresa
-ORDER BY finalizadas DESC;</pre>
-                </div>
-
-                <div class="query-item">
-                    <h3>3. Relevamientos por cliente con últimas auditorías</h3>
-                    <pre class="sql-code">SELECT 
-    c.id_cliente,
-    c.nombre_cliente,
-    COUNT(r.id_relevamiento) AS total_relevamientos,
-    MAX(v.fecha_visita) AS ultima_auditoria,
-    GROUP_CONCAT(DISTINCT pv.nombre_punto_venta SEPARATOR ', ') AS puntos_auditados
-FROM clientes c
-LEFT JOIN relevamiento r ON c.id_cliente = r.id_cliente
-LEFT JOIN visita v ON r.id_visita = v.id_visita
-LEFT JOIN punto_de_venta pv ON v.idPunto_venta = pv.idPunto_venta
-GROUP BY c.id_cliente, c.nombre_cliente
-ORDER BY total_relevamientos DESC;</pre>
-                </div>
-
-                <div class="query-item">
-                    <h3>4. Estado general de visitas programadas</h3>
-                    <pre class="sql-code">SELECT 
-    estado_visita,
-    COUNT(*) AS cantidad,
-    ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM visita), 2) AS porcentaje
-FROM visita
-GROUP BY estado_visita
-ORDER BY cantidad DESC;</pre>
-                </div>
-
-                <div class="query-item">
-                    <h3>5. Detalle completo de visitas realizadas</h3>
+                    <h3>2. Visitas realizadas con información de auditor y punto de venta</h3>
                     <pre class="sql-code">SELECT 
     v.id_visita,
-    v.fecha_visita,
-    CONCAT(a.nombre_auditor, ' ', a.apellido_auditor) AS auditor,
+    a.nombre_auditor,
+    a.apellido_auditor,
     pv.nombre_punto_venta,
     e.nombre_empresa,
-    TIME_FORMAT(v.hs_inicio_visita, '%H:%i') AS inicio,
-    TIME_FORMAT(v.hs_fin_visita, '%H:%i') AS fin,
-    TIMEDIFF(v.hs_fin_visita, v.hs_inicio_visita) AS duracion,
-    v.cant_servicios,
+    v.fecha_visita,
     v.estado_visita
 FROM visita v
 JOIN auditor a ON v.id_auditor = a.id_auditor
@@ -401,35 +358,63 @@ ORDER BY v.fecha_visita DESC;</pre>
                 </div>
 
                 <div class="query-item">
-                    <h3>6. Visitas pendientes o programadas (próximas)</h3>
+                    <h3>3. Relevamientos por cliente</h3>
                     <pre class="sql-code">SELECT 
-    v.id_visita,
-    v.fecha_visita,
-    CONCAT(a.nombre_auditor, ' ', a.apellido_auditor) AS auditor,
-    pv.nombre_punto_venta,
-    pv.direccion_punto_venta,
-    v.estado_visita
-FROM visita v
-JOIN auditor a ON v.id_auditor = a.id_auditor
-JOIN punto_de_venta pv ON v.idPunto_venta = pv.idPunto_venta
-WHERE v.estado_visita IN ('Pendiente', 'Programada')
-ORDER BY v.fecha_visita ASC;</pre>
+    c.id_cliente,
+    c.nombre_cliente,
+    r.id_relevamiento,
+    r.descripcion_relevamiento,
+    v.fecha_visita
+FROM clientes c
+LEFT JOIN relevamiento r ON c.id_cliente = r.id_cliente
+LEFT JOIN visita v ON r.id_visita = v.id_visita
+ORDER BY c.nombre_cliente, v.fecha_visita;</pre>
                 </div>
 
                 <div class="query-item">
-                    <h3>7. Resumen de relevamientos por cliente en cadena de retail</h3>
+                    <h3>4. Cantidad de visitas por auditor</h3>
                     <pre class="sql-code">SELECT 
-    c.nombre_cliente,
+    a.id_auditor,
+    a.nombre_auditor,
+    a.apellido_auditor,
+    COUNT(v.id_visita) AS total_visitas
+FROM auditor a
+LEFT JOIN visita v ON a.id_auditor = v.id_auditor
+GROUP BY a.id_auditor, a.nombre_auditor, a.apellido_auditor
+ORDER BY total_visitas DESC;</pre>
+                </div>
+
+                <div class="query-item">
+                    <h3>5. Estado de las visitas (Finalizado, Pendiente, Programada)</h3>
+                    <pre class="sql-code">SELECT 
+    estado_visita,
+    COUNT(*) AS cantidad
+FROM visita
+GROUP BY estado_visita
+ORDER BY cantidad DESC;</pre>
+                </div>
+
+                <div class="query-item">
+                    <h3>6. Puntos de venta por empresa</h3>
+                    <pre class="sql-code">SELECT 
     e.nombre_empresa,
-    COUNT(r.id_relevamiento) AS relevamientos,
-    GROUP_CONCAT(DISTINCT pv.nombre_punto_venta SEPARATOR ' | ') AS locales
-FROM relevamiento r
-JOIN clientes c ON r.id_cliente = c.id_cliente
-JOIN visita v ON r.id_visita = v.id_visita
-JOIN punto_de_venta pv ON v.idPunto_venta = pv.idPunto_venta
-JOIN empresa e ON pv.idEmpresa = e.idEmpresa
-GROUP BY c.nombre_cliente, e.nombre_empresa
-ORDER BY relevamientos DESC;</pre>
+    pv.nombre_punto_venta,
+    pv.direccion_punto_venta
+FROM empresa e
+LEFT JOIN punto_de_venta pv ON e.idEmpresa = pv.idEmpresa
+ORDER BY e.nombre_empresa, pv.nombre_punto_venta;</pre>
+                </div>
+
+                <div class="query-item">
+                    <h3>7. Total de relevamientos por cliente</h3>
+                    <pre class="sql-code">SELECT 
+    c.id_cliente,
+    c.nombre_cliente,
+    COUNT(r.id_relevamiento) AS total_relevamientos
+FROM clientes c
+LEFT JOIN relevamiento r ON c.id_cliente = r.id_cliente
+GROUP BY c.id_cliente, c.nombre_cliente
+ORDER BY total_relevamientos DESC;</pre>
                 </div>
 
             </div>
@@ -442,7 +427,7 @@ ORDER BY relevamientos DESC;</pre>
                 <div class="kpi-grid">
                     <div class="kpi-card">
                         <h3>Total de Auditores Activos</h3>
-                        <pre class="sql-code">SELECT COUNT(DISTINCT id_auditor) AS total
+                        <pre class="sql-code">SELECT COUNT(id_auditor) AS total
 FROM auditor;</pre>
                         <p class="kpi-desc">Cantidad de auditores en el sistema</p>
                         <p class="kpi-value">6 auditores</p>
@@ -468,62 +453,43 @@ FROM relevamiento;</pre>
                     <div class="kpi-card">
                         <h3>Promedio de Servicios por Visita</h3>
                         <pre class="sql-code">SELECT 
-ROUND(AVG(cant_servicios), 2) AS promedio
+AVG(cant_servicios) AS promedio
 FROM visita;</pre>
                         <p class="kpi-desc">Servicios promedio por auditoría</p>
                         <p class="kpi-value">1.45 servicios</p>
                     </div>
 
                     <div class="kpi-card">
-                        <h3>Tasa de Cumplimiento</h3>
-                        <pre class="sql-code">SELECT 
-CONCAT(ROUND(
-(SUM(CASE WHEN estado_visita = 'Finalizado' 
-THEN 1 ELSE 0 END) / COUNT(*)) * 100, 2), '%') 
-AS tasa_cumplimiento
-FROM visita;</pre>
-                        <p class="kpi-desc">% de visitas completadas vs programadas</p>
-                        <p class="kpi-value">63.64%</p>
+                        <h3>Total de Clientes</h3>
+                        <pre class="sql-code">SELECT COUNT(*) AS total
+FROM clientes;</pre>
+                        <p class="kpi-desc">Cantidad de clientes auditados</p>
+                        <p class="kpi-value">8 clientes</p>
                     </div>
 
                     <div class="kpi-card">
-                        <h3>Auditor Más Productivo</h3>
-                        <pre class="sql-code">SELECT 
-CONCAT(a.nombre_auditor, ' ', a.apellido_auditor),
-COUNT(v.id_visita) AS visitas
-FROM auditor a
-LEFT JOIN visita v ON a.id_auditor = v.id_auditor
-GROUP BY a.id_auditor
-ORDER BY visitas DESC LIMIT 1;</pre>
-                        <p class="kpi-desc">Auditor con más auditorías</p>
-                        <p class="kpi-value">Gustavo Gerez - 3 visitas</p>
+                        <h3>Total de Puntos de Venta</h3>
+                        <pre class="sql-code">SELECT COUNT(*) AS total
+FROM punto_de_venta;</pre>
+                        <p class="kpi-desc">Cantidad de locales auditados</p>
+                        <p class="kpi-value">8 puntos de venta</p>
                     </div>
 
                     <div class="kpi-card">
-                        <h3>Cadena con Más Auditorías</h3>
-                        <pre class="sql-code">SELECT 
-e.nombre_empresa,
-COUNT(v.id_visita) AS visitas
-FROM empresa e
-LEFT JOIN punto_de_venta pv ON e.idEmpresa = pv.idEmpresa
-LEFT JOIN visita v ON pv.idPunto_venta = v.idPunto_venta
-GROUP BY e.nombre_empresa
-ORDER BY visitas DESC LIMIT 1;</pre>
-                        <p class="kpi-desc">Cadena retail con mayor auditorías</p>
-                        <p class="kpi-value">Carrefour - 3 visitas</p>
+                        <h3>Cadenas Retail</h3>
+                        <pre class="sql-code">SELECT COUNT(*) AS total
+FROM empresa;</pre>
+                        <p class="kpi-desc">Cantidad de cadenas retail</p>
+                        <p class="kpi-value">5 empresas</p>
                     </div>
 
                     <div class="kpi-card">
-                        <h3>Cliente Más Auditado</h3>
-                        <pre class="sql-code">SELECT 
-c.nombre_cliente,
-COUNT(r.id_relevamiento) AS relevamientos
-FROM clientes c
-LEFT JOIN relevamiento r ON c.id_cliente = r.id_cliente
-GROUP BY c.id_cliente
-ORDER BY relevamientos DESC LIMIT 1;</pre>
-                        <p class="kpi-desc">Cliente con mayor número de auditorías</p>
-                        <p class="kpi-value">Danone Argentina - 3 relevamientos</p>
+                        <h3>Visitas por Estado</h3>
+                        <pre class="sql-code">SELECT estado_visita, COUNT(*) AS total
+FROM visita
+GROUP BY estado_visita;</pre>
+                        <p class="kpi-desc">Distribución de estados de visitas</p>
+                        <p class="kpi-value">Ver consulta</p>
                     </div>
                 </div>
             </div>
@@ -609,15 +575,12 @@ ORDER BY relevamientos DESC LIMIT 1;</pre>
                         <li>Cálculo de indicadores KPI que reflejen realidades del negocio de auditoría</li>
                     </ul>
 
-                    <h3>Mejoras futuras recomendadas:</h3>
-                    <ul class="recommendations-list">
-                        <li>✓ Crear índices en campos de búsqueda frecuente: fecha_visita, estado_visita, id_cliente</li>
-                        <li>✓ Implementar vistas para consultas complejas reutilizables</li>
-                        <li>✓ Agregar tabla de OBSERVACIONES para documentar hallazgos de auditorías</li>
-                        <li>✓ Crear procedimientos almacenados para generar reportes automáticos</li>
-                        <li>✓ Implementar tabla de auditoría (audit log) para rastrear cambios</li>
-                        <li>✓ Agregar campos de fecha_creacion y fecha_actualizacion en tablas principales</li>
-                        <li>✓ Realizar respaldos periódicos y testing de recuperación</li>
+                    <h3>Integrantes del trabajo:</h3>
+                    <ul class="team-list">
+                        <li>👤 Fernández Magali</li>
+                        <li>👤 Frutos Tamara</li>
+                        <li>👤 Ocampos Micaela</li>
+                        <li>👤 Sipioni Florencia</li>
                     </ul>
 
                     <h3>Tecnologías utilizadas:</h3>
@@ -635,7 +598,7 @@ ORDER BY relevamientos DESC LIMIT 1;</pre>
 
     <!-- Footer -->
     <footer class="footer">
-        <p>&copy; 2026 Trabajo Práctico Base de Datos | Florencia Sipioni</p>
+        <p>&copy; 2026 Trabajo Práctico Base de Datos | Grupo de Trabajo</p>
         <p>Sistema de Gestión de Auditores | Base de datos: auditores | MariaDB 10.4</p>
     </footer>
 
