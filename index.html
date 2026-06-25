@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trabajo Práctico - Base de Datos Auditores</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navegación -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="logo">BBDD - Auditores</h1>
+            <ul class="nav-menu">
+                <li><a href="#objetivo">Objetivo</a></li>
+                <li><a href="#der">DER</a></li>
+                <li><a href="#diccionario">Diccionario</a></li>
+                <li><a href="#consultas">Consultas SQL</a></li>
+                <li><a href="#kpi">KPI</a></li>
+                <li><a href="#capturas">Capturas</a></li>
+                <li><a href="#conclusiones">Conclusiones</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Sección Hero -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Trabajo Práctico: Base de Datos</h1>
+            <p>Sistema de Gestión de Auditores y Relevamientos</p>
+            <p class="subtitle">SQL - HeidiSQL - MariaDB 10.4</p>
+        </div>
+    </section>
+
+    <!-- Contenedor principal -->
+    <div class="container">
+
+        <!-- OBJETIVO -->
+        <section id="objetivo" class="section">
+            <h2>Objetivo</h2>
+            <div class="content-box">
+                <p>
+                    El objetivo de este trabajo práctico es diseñar e implementar una base de datos relacional 
+                    que gestione la información de auditores, visitas a puntos de venta, relevamientos y clientes. 
+                    Se busca aplicar conceptos de normalización, integridad referencial y consultas SQL avanzadas.
+                </p>
+                <ul class="objectives-list">
+                    <li>Diseñar un modelo de datos normalizado con 6 tablas relacionadas</li>
+                    <li>Implementar relaciones de uno a muchos entre entidades</li>
+                    <li>Crear consultas SQL complejas con JOINs y agregaciones</li>
+                    <li>Generar indicadores KPI para análisis de gestión</li>
+                    <li>Documentar la estructura y funcionalidad del sistema</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- DER -->
+        <section id="der" class="section">
+            <h2>Diagrama Entidad-Relación (DER)</h2>
+            <div class="content-box">
+                <p><strong>Estructura relacional de la base de datos:</strong></p>
+                <div class="der-container">
+                    <pre class="code-block">
+┌─────────────────────────────────────────────────────────────┐
+│                      ESTRUCTURA DE BBDD                      │
+└─────────────────────────────────────────────────────────────┘
+
+AUDITOR
+├── id_auditor (PK) ──────────┐
+├── nombre_auditor            │
+├── apellido_auditor          │
+└── contacto_auditor          │
+                              │
+                         ┌────┴────────────────────┐
+                         │                         │
+                    VISITA (1:N)            (opcional uso)
+                    ├── id_visita (PK)      │
+                    ├── id_auditor (FK) ────┘
+                    ├── idPunto_venta (FK)
+                    ├── fecha_visita
+                    ├── hs_inicio_visita
+                    ├── hs_fin_visita
+                    ├── cant_servicios
+                    └── estado_visita
+                         │
+                         └─────────────────────┐
+                                              │
+                         RELEVAMIENTO (1:N)   │
+                         ├── id_relevamiento   │
+                         ├── id_cliente (FK)   │
+                         ├── id_visita (FK) ───┘
+                         └── descripcion_relevamiento
+
+
+EMPRESA
+├── idEmpresa (PK) ──────────────┐
+└── nombre_empresa              │
+                                │
+                          PUNTO_DE_VENTA (1:N)
+                          ├── idPunto_venta (PK)
+                          ├── idEmpresa (FK) ──┘
+                          ├── nombre_punto_venta
+                          └── direccion_punto_venta
+
+
+CLIENTES
+├── id_cliente (PK) ──────┐
+├── nombre_cliente        │
+└── contacto_cliente      │
+                     (referencia en RELEVAMIENTO)
+                    </pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- DICCIONARIO DE DATOS -->
+        <section id="diccionario" class="section">
+            <h2>Diccionario de Datos</h2>
+            <div class="content-box">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Tabla</th>
+                            <th>Campo</th>
+                            <th>Tipo</th>
+                            <th>Descripción</th>
+                            <th>Restricciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- AUDITOR -->
+                        <tr>
+                            <td>AUDITOR</td>
+                            <td>id_auditor</td>
+                            <td>INT(3)</td>
+                            <td>Identificador único del auditor</td>
+                            <td>PK, AUTO_INCREMENT</td>
+                        </tr>
+                        <tr>
+                            <td>AUDITOR</td>
+                            <td>nombre_auditor</td>
+                            <td>VARCHAR(25)</td>
+                            <td>Nombre del auditor</td>
+                            <td>NOT NULL</td>
+                        </tr>
+                        <tr>
+                            <td>AUDITOR</td>
+                            <td>apellido_auditor</td>
+                            <td>VARCHAR(25)</td>
+                            <td>Apellido del auditor</td>
+                            <td>NOT NULL</td>
+                        </tr>
+                        <tr>
+                            <td>AUDITOR</td>
+                            <td>contacto_auditor</td>
+                            <td>VARCHAR(30)</td>
+                            <td>Teléfono o email del auditor</td>
+                            <td>NOT NULL</td>
+                        </tr>
+
+                        <!-- CLIENTES -->
+                        <tr>
+                            <td>CLIENTES</td>
+                            <td>id_cliente</td>
+                            <td>INT(4)</td>
+                            <td>Identificador único del cliente</td>
+                            <td>PK, AUTO_INCREMENT</td>
+                        </tr>
+                        <tr>
+                            <td>CLIENTES</td>
+                            <td>nombre_cliente</td>
+                            <td>VARCHAR(25)</td>
+                            <td>Nombre de la empresa cliente</td>
+                            <td>NOT NULL</td>
+                        </tr>
+                        <tr>
+                            <td>CLIENTES</td>
+                            <td>contacto_cliente</td>
+                            <td>VARCHAR(30)</td>
+                            <td>Teléfono o email del cliente</td>
+                            <td>NOT NULL</td>
+                        </tr>
+
+                        <!-- EMPRESA -->
+                        <tr>
+                            <td>EMPRESA</td>
+                            <td>idEmpresa</td>
+                            <td>INT(3)</td>
+                            <td>Identificador único de empresa retail</td>
+                            <td>PK, AUTO_INCREMENT</td>
+                        </tr>
+                        <tr>
+                            <td>EMPRESA</td>
+                            <td>nombre_empresa</td>
+                            <td>VARCHAR(25)</td>
+                            <td>Nombre de la cadena retail</td>
+                            <td>NOT NULL</td>
+                        </tr>
+
+                        <!-- PUNTO_DE_VENTA -->
+                        <tr>
+                            <td>PUNTO_DE_VENTA</td>
+                            <td>idPunto_venta</td>
+                            <td>INT(3)</td>
+                            <td>Identificador único del punto de venta</td>
+                            <td>PK, AUTO_INCREMENT</td>
+                        </tr>
+                        <tr>
+                            <td>PUNTO_DE_VENTA</td>
+                            <td>nombre_punto_venta</td>
+                            <td>VARCHAR(25)</td>
+                            <td>Nombre del local/sucursal</td>
+                            <td>NOT NULL</td>
+                        </tr>
+                        <tr>
+                            <td>PUNTO_DE_VENTA</td>
+                            <td>direccion_punto_venta</td>
+                            <td>VARCHAR(50)</td>
+                            <td>Dirección del punto de venta</td>
+                            <td>NOT NULL</td>
+                        </tr>
+                        <tr>
+                            <td>PUNTO_DE_VENTA</td>
+                            <td>idEmpresa</td>
+                            <td>INT(3)</td>
+                            <td>Referencia a empresa matriz</td>
+                            <td>FK → EMPRESA, CASCADE</td>
+                        </tr>
+
+                        <!-- VISITA -->
+                        <tr>
+                            <td>VISITA</td>
+                            <td>id_visita</td>
+                            <td>INT(4)</td>
+                            <td>Identificador único de visita</td>
+                            <td>PK, AUTO_INCREMENT</td>
+                        </tr>
+                        <tr>
+                            <td>VISITA</td>
+                            <td>id_auditor</td>
+                            <td>INT(3)</td>
+                            <td>Auditor responsable de la visita</td>
+                            <td>FK → AUDITOR, CASCADE</td>
+                        </tr>
+                        <tr>
+                            <td>VISITA</td>
+                            <td>idPunto_venta</td>
+                            <td>INT(3)</td>
+                            <td>Punto de venta auditado</td>
+                            <td>FK → PUNTO_DE_VENTA, CASCADE</td>
+                        </tr>
+                        <tr>
+                            <td>VISITA</td>
+                            <td>fecha_visita</td>
+                            <td>DATE</td>
+                            <td>Fecha de la visita</td>
+                            <td>NOT NULL</td>
+                        </tr>
+                        <tr>
+                            <td>VISITA</td>
+                            <td>hs_inicio_visita</td>
+                            <td>TIME</td>
+                            <td>Hora de inicio de la visita</td>
+                            <td>NOT NULL</td>
+                        </tr>
+                        <tr>
+                            <td>VISITA</td>
+                            <td>hs_fin_visita</td>
+                            <td>TIME</td>
+                            <td>Hora de finalización</td>
+                            <td>NOT NULL</td>
+                        </tr>
+                        <tr>
+                            <td>VISITA</td>
+                            <td>cant_servicios</td>
+                            <td>INT(1)</td>
+                            <td>Cantidad de relevamientos realizados</td>
+                            <td>NOT NULL</td>
+                        </tr>
+                        <tr>
+                            <td>VISITA</td>
+                            <td>estado_visita</td>
+                            <td>VARCHAR(25)</td>
+                            <td>Estado (Finalizado/Pendiente/Programada)</td>
+                            <td>NOT NULL</td>
+                        </tr>
+
+                        <!-- RELEVAMIENTO -->
+                        <tr>
+                            <td>RELEVAMIENTO</td>
+                            <td>id_relevamiento</td>
+                            <td>INT(10)</td>
+                            <td>Identificador único del relevamiento</td>
+                            <td>PK, AUTO_INCREMENT</td>
+                        </tr>
+                        <tr>
+                            <td>RELEVAMIENTO</td>
+                            <td>id_cliente</td>
+                            <td>INT(4)</td>
+                            <td>Cliente para el cual se realiza</td>
+                            <td>FK → CLIENTES, CASCADE</td>
+                        </tr>
+                        <tr>
+                            <td>RELEVAMIENTO</td>
+                            <td>id_visita</td>
+                            <td>INT(4)</td>
+                            <td>Visita a la cual pertenece</td>
+                            <td>FK → VISITA, CASCADE</td>
+                        </tr>
+                        <tr>
+                            <td>RELEVAMIENTO</td>
+                            <td>descripcion_relevamiento</td>
+                            <td>VARCHAR(200)</td>
+                            <td>Detalle del relevamiento realizado</td>
+                            <td>NOT NULL</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- CONSULTAS SQL -->
+        <section id="consultas" class="section">
+            <h2>Consultas SQL Principales</h2>
+            <div class="content-box">
+                
+                <div class="query-item">
+                    <h3>1. Auditorías por auditor con cantidad de visitas</h3>
+                    <pre class="sql-code">SELECT 
+    a.id_auditor,
+    CONCAT(a.nombre_auditor, ' ', a.apellido_auditor) AS nombre_completo,
+    a.contacto_auditor,
+    COUNT(v.id_visita) AS total_visitas,
+    SUM(v.cant_servicios) AS total_servicios
+FROM auditor a
+LEFT JOIN visita v ON a.id_auditor = v.id_auditor
+GROUP BY a.id_auditor, a.nombre_auditor, a.apellido_auditor, a.contacto_auditor
+ORDER BY total_visitas DESC;</pre>
+                </div>
+
+                <div class="query-item">
+                    <h3>2. Visitas completadas por punto de venta</h3>
+                    <pre class="sql-code">SELECT 
+    pv.idPunto_venta,
+    pv.nombre_punto_venta,
+    e.nombre_empresa,
+    COUNT(v.id_visita) AS visitas_completadas,
+    SUM(CASE WHEN v.estado_visita = 'Finalizado' THEN 1 ELSE 0 END) AS finalizadas
+FROM punto_de_venta pv
+JOIN empresa e ON pv.idEmpresa = e.idEmpresa
+LEFT JOIN visita v ON pv.idPunto_venta = v.idPunto_venta
+GROUP BY pv.idPunto_venta, pv.nombre_punto_venta, e.nombre_empresa
+ORDER BY finalizadas DESC;</pre>
+                </div>
+
+                <div class="query-item">
+                    <h3>3. Relevamientos por cliente con últimas auditorías</h3>
+                    <pre class="sql-code">SELECT 
+    c.id_cliente,
+    c.nombre_cliente,
+    COUNT(r.id_relevamiento) AS total_relevamientos,
+    MAX(v.fecha_visita) AS ultima_auditoria,
+    GROUP_CONCAT(DISTINCT pv.nombre_punto_venta SEPARATOR ', ') AS puntos_auditados
+FROM clientes c
+LEFT JOIN relevamiento r ON c.id_cliente = r.id_cliente
+LEFT JOIN visita v ON r.id_visita = v.id_visita
+LEFT JOIN punto_de_venta pv ON v.idPunto_venta = pv.idPunto_venta
+GROUP BY c.id_cliente, c.nombre_cliente
+ORDER BY total_relevamientos DESC;</pre>
+                </div>
+
+                <div class="query-item">
+                    <h3>4. Estado general de visitas programadas</h3>
+                    <pre class="sql-code">SELECT 
+    estado_visita,
+    COUNT(*) AS cantidad,
+    ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM visita), 2) AS porcentaje
+FROM visita
+GROUP BY estado_visita
+ORDER BY cantidad DESC;</pre>
+                </div>
+
+                <div class="query-item">
+                    <h3>5. Detalle completo de visitas realizadas</h3>
+                    <pre class="sql-code">SELECT 
+    v.id_visita,
+    v.fecha_visita,
+    CONCAT(a.nombre_auditor, ' ', a.apellido_auditor) AS auditor,
+    pv.nombre_punto_venta,
+    e.nombre_empresa,
+    TIME_FORMAT(v.hs_inicio_visita, '%H:%i') AS inicio,
+    TIME_FORMAT(v.hs_fin_visita, '%H:%i') AS fin,
+    TIMEDIFF(v.hs_fin_visita, v.hs_inicio_visita) AS duracion,
+    v.cant_servicios,
+    v.estado_visita
+FROM visita v
+JOIN auditor a ON v.id_auditor = a.id_auditor
+JOIN punto_de_venta pv ON v.idPunto_venta = pv.idPunto_venta
+JOIN empresa e ON pv.idEmpresa = e.idEmpresa
+ORDER BY v.fecha_visita DESC;</pre>
+                </div>
+
+                <div class="query-item">
+                    <h3>6. Visitas pendientes o programadas (próximas)</h3>
+                    <pre class="sql-code">SELECT 
+    v.id_visita,
+    v.fecha_visita,
+    CONCAT(a.nombre_auditor, ' ', a.apellido_auditor) AS auditor,
+    pv.nombre_punto_venta,
+    pv.direccion_punto_venta,
+    v.estado_visita
+FROM visita v
+JOIN auditor a ON v.id_auditor = a.id_auditor
+JOIN punto_de_venta pv ON v.idPunto_venta = pv.idPunto_venta
+WHERE v.estado_visita IN ('Pendiente', 'Programada')
+ORDER BY v.fecha_visita ASC;</pre>
+                </div>
+
+                <div class="query-item">
+                    <h3>7. Resumen de relevamientos por cliente en cadena de retail</h3>
+                    <pre class="sql-code">SELECT 
+    c.nombre_cliente,
+    e.nombre_empresa,
+    COUNT(r.id_relevamiento) AS relevamientos,
+    GROUP_CONCAT(DISTINCT pv.nombre_punto_venta SEPARATOR ' | ') AS locales
+FROM relevamiento r
+JOIN clientes c ON r.id_cliente = c.id_cliente
+JOIN visita v ON r.id_visita = v.id_visita
+JOIN punto_de_venta pv ON v.idPunto_venta = pv.idPunto_venta
+JOIN empresa e ON pv.idEmpresa = e.idEmpresa
+GROUP BY c.nombre_cliente, e.nombre_empresa
+ORDER BY relevamientos DESC;</pre>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- INDICADORES KPI -->
+        <section id="kpi" class="section">
+            <h2>Indicadores KPI</h2>
+            <div class="content-box">
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <h3>Total de Auditores Activos</h3>
+                        <pre class="sql-code">SELECT COUNT(DISTINCT id_auditor) AS total
+FROM auditor;</pre>
+                        <p class="kpi-desc">Cantidad de auditores en el sistema</p>
+                        <p class="kpi-value">6 auditores</p>
+                    </div>
+
+                    <div class="kpi-card">
+                        <h3>Visitas Realizadas</h3>
+                        <pre class="sql-code">SELECT COUNT(*) AS total
+FROM visita
+WHERE estado_visita = 'Finalizado';</pre>
+                        <p class="kpi-desc">Total de auditorías completadas</p>
+                        <p class="kpi-value">7 visitas finalizadas</p>
+                    </div>
+
+                    <div class="kpi-card">
+                        <h3>Servicios/Relevamientos Total</h3>
+                        <pre class="sql-code">SELECT COUNT(*) AS total
+FROM relevamiento;</pre>
+                        <p class="kpi-desc">Total de relevamientos realizados</p>
+                        <p class="kpi-value">15 relevamientos</p>
+                    </div>
+
+                    <div class="kpi-card">
+                        <h3>Promedio de Servicios por Visita</h3>
+                        <pre class="sql-code">SELECT 
+ROUND(AVG(cant_servicios), 2) AS promedio
+FROM visita;</pre>
+                        <p class="kpi-desc">Servicios promedio por auditoría</p>
+                        <p class="kpi-value">1.45 servicios</p>
+                    </div>
+
+                    <div class="kpi-card">
+                        <h3>Tasa de Cumplimiento</h3>
+                        <pre class="sql-code">SELECT 
+CONCAT(ROUND(
+(SUM(CASE WHEN estado_visita = 'Finalizado' 
+THEN 1 ELSE 0 END) / COUNT(*)) * 100, 2), '%') 
+AS tasa_cumplimiento
+FROM visita;</pre>
+                        <p class="kpi-desc">% de visitas completadas vs programadas</p>
+                        <p class="kpi-value">63.64%</p>
+                    </div>
+
+                    <div class="kpi-card">
+                        <h3>Auditor Más Productivo</h3>
+                        <pre class="sql-code">SELECT 
+CONCAT(a.nombre_auditor, ' ', a.apellido_auditor),
+COUNT(v.id_visita) AS visitas
+FROM auditor a
+LEFT JOIN visita v ON a.id_auditor = v.id_auditor
+GROUP BY a.id_auditor
+ORDER BY visitas DESC LIMIT 1;</pre>
+                        <p class="kpi-desc">Auditor con más auditorías</p>
+                        <p class="kpi-value">Gustavo Gerez - 3 visitas</p>
+                    </div>
+
+                    <div class="kpi-card">
+                        <h3>Cadena con Más Auditorías</h3>
+                        <pre class="sql-code">SELECT 
+e.nombre_empresa,
+COUNT(v.id_visita) AS visitas
+FROM empresa e
+LEFT JOIN punto_de_venta pv ON e.idEmpresa = pv.idEmpresa
+LEFT JOIN visita v ON pv.idPunto_venta = v.idPunto_venta
+GROUP BY e.nombre_empresa
+ORDER BY visitas DESC LIMIT 1;</pre>
+                        <p class="kpi-desc">Cadena retail con mayor auditorías</p>
+                        <p class="kpi-value">Carrefour - 3 visitas</p>
+                    </div>
+
+                    <div class="kpi-card">
+                        <h3>Cliente Más Auditado</h3>
+                        <pre class="sql-code">SELECT 
+c.nombre_cliente,
+COUNT(r.id_relevamiento) AS relevamientos
+FROM clientes c
+LEFT JOIN relevamiento r ON c.id_cliente = r.id_cliente
+GROUP BY c.id_cliente
+ORDER BY relevamientos DESC LIMIT 1;</pre>
+                        <p class="kpi-desc">Cliente con mayor número de auditorías</p>
+                        <p class="kpi-value">Danone Argentina - 3 relevamientos</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CAPTURAS HEIDI -->
+        <section id="capturas" class="section">
+            <h2>Capturas de HeidiSQL</h2>
+            <div class="content-box">
+                <p class="note">
+                    📸 <strong>Instrucciones para agregar capturas:</strong> Toma screenshots de HeidiSQL 
+                    y crea una carpeta "images" en el repositorio. Sube las imágenes y reemplaza los placeholders.
+                </p>
+                <ul class="screenshot-list">
+                    <li>Estructura completa de las 6 tablas (AUDITOR, CLIENTES, EMPRESA, PUNTO_DE_VENTA, VISITA, RELEVAMIENTO)</li>
+                    <li>Relaciones y claves foráneas entre tablas</li>
+                    <li>Ejecución de consultas principales con resultados</li>
+                    <li>Cálculo de indicadores KPI</li>
+                    <li>Datos de ejemplo: Auditores, Clientes, Puntos de venta, Visitas realizadas</li>
+                </ul>
+                <div class="placeholder-images">
+                    <div class="image-placeholder">
+                        <p>Captura 1: Tablas y estructura</p>
+                        <p class="small-text">Reemplaza con screenshot de HeidiSQL</p>
+                    </div>
+                    <div class="image-placeholder">
+                        <p>Captura 2: Consulta JOIN</p>
+                        <p class="small-text">Reemplaza con resultado de consulta</p>
+                    </div>
+                    <div class="image-placeholder">
+                        <p>Captura 3: KPI y agregados</p>
+                        <p class="small-text">Reemplaza con cálculos KPI</p>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <h4>Pasos para agregar tus capturas:</h4>
+                    <ol>
+                        <li>Toma screenshots en HeidiSQL (Alt+Print Scr o captura de pantalla)</li>
+                        <li>Crea una carpeta llamada <code>images</code> en la raíz del repositorio</li>
+                        <li>Sube las imágenes (captura1.png, captura2.png, etc.)</li>
+                        <li>En el HTML, reemplaza cada placeholder con: <code>&lt;img src="images/captura1.png" alt="Descripción"&gt;</code></li>
+                        <li>Commit y push a GitHub</li>
+                    </ol>
+                </div>
+            </div>
+        </section>
+
+        <!-- CONCLUSIONES -->
+        <section id="conclusiones" class="section">
+            <h2>Conclusiones</h2>
+            <div class="content-box">
+                <div class="conclusion-text">
+                    <h3>Aprendizajes clave del proyecto:</h3>
+                    <ul class="conclusions-list">
+                        <li>
+                            <strong>Normalización en práctica:</strong> La base de datos está normalizada en 3FN (Tercera Forma Normal), 
+                            evitando redundancias y garantizando integridad referencial entre 6 tablas.
+                        </li>
+                        <li>
+                            <strong>Relaciones complejas:</strong> Se implementaron relaciones uno-a-muchos (1:N) entre: 
+                            AUDITOR → VISITA, EMPRESA → PUNTO_DE_VENTA, VISITA → RELEVAMIENTO, etc.
+                        </li>
+                        <li>
+                            <strong>Consultas avanzadas:</strong> Las combinaciones de JOINs (INNER, LEFT), GROUP BY, agregados 
+                            (COUNT, SUM, AVG) y filtros permiten extraer información significativa.
+                        </li>
+                        <li>
+                            <strong>Análisis de datos real:</strong> Los KPI desarrollados permiten medir productividad de auditores, 
+                            efectividad de auditorías y cobertura de clientes.
+                        </li>
+                        <li>
+                            <strong>Integridad referencial:</strong> El uso de FOREIGN KEY con ON DELETE CASCADE garantiza 
+                            consistencia al eliminar registros relacionados.
+                        </li>
+                    </ul>
+
+                    <h3>Desafíos enfrentados:</h3>
+                    <ul class="conclusions-list">
+                        <li>Diseño de la estructura relacional considerando todos los puntos de contacto entre entidades</li>
+                        <li>Definición adecuada de tipos de datos y tamaños para optimizar almacenamiento</li>
+                        <li>Creación de consultas que combinen múltiples tablas sin perder legibilidad</li>
+                        <li>Cálculo de indicadores KPI que reflejen realidades del negocio de auditoría</li>
+                    </ul>
+
+                    <h3>Mejoras futuras recomendadas:</h3>
+                    <ul class="recommendations-list">
+                        <li>✓ Crear índices en campos de búsqueda frecuente: fecha_visita, estado_visita, id_cliente</li>
+                        <li>✓ Implementar vistas para consultas complejas reutilizables</li>
+                        <li>✓ Agregar tabla de OBSERVACIONES para documentar hallazgos de auditorías</li>
+                        <li>✓ Crear procedimientos almacenados para generar reportes automáticos</li>
+                        <li>✓ Implementar tabla de auditoría (audit log) para rastrear cambios</li>
+                        <li>✓ Agregar campos de fecha_creacion y fecha_actualizacion en tablas principales</li>
+                        <li>✓ Realizar respaldos periódicos y testing de recuperación</li>
+                    </ul>
+
+                    <h3>Tecnologías utilizadas:</h3>
+                    <ul class="tech-list">
+                        <li><strong>Motor:</strong> MariaDB 10.4.32</li>
+                        <li><strong>Cliente:</strong> HeidiSQL 12.16.0</li>
+                        <li><strong>Lenguaje:</strong> SQL estándar con variantes MariaDB</li>
+                        <li><strong>Documentación:</strong> HTML5 + CSS3 responsivo</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2026 Trabajo Práctico Base de Datos | Florencia Sipioni</p>
+        <p>Sistema de Gestión de Auditores | Base de datos: auditores | MariaDB 10.4</p>
+    </footer>
+
+</body>
+</html>
